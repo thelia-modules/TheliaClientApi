@@ -183,37 +183,40 @@ class Client
 
         $data = http_build_query($queryParameters);
 
-        //création d'un contexte d'appel
-        $opts = [
-            'http' => [
-                'method' => $method,
-                'ignore_errors' => true,
-                'header' => "Content-type: " . $contentType . " \r\n" .
-                    "Authorization: " . $headers["Authorization"],
-                'content' => $body
-            ]
-        ];
-
-        $context = stream_context_create($opts);
-
         $fullUrl = $this->baseUrl . $pathInfo . '?' . $data;
 
-        //Utilisation du contexte dans l'appel
-        $res = file_get_contents(
-            $fullUrl,
-            false,
-            $context
-        );
+        $curlHeaders = [
+            "Content-type: " . $contentType,
+            "Authorization: " . $headers["Authorization"],
+        ];
 
-        $requestHeader = $this->parseHeaders($http_response_header);
+        $curl = curl_init();
 
-        switch ($requestHeader['Content-Type']) {
-            case "application/json":
-                $res = json_decode($res, true);
-                break;
+        curl_setopt($curl, CURLOPT_URL, $fullUrl);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_COOKIESESSION, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $curlHeaders);
+
+        $res = curl_exec($curl);
+
+        $info = curl_getinfo($curl);
+        $http_code = $info['http_code'];
+
+        if (curl_errno($curl)) {
+            $res = curl_error($curl);
+        } else {
+            switch ($info['content_type']) {
+                case "application/json":
+                    $res = json_decode($res, true);
+                    break;
+            }
         }
 
-        return [$requestHeader['reponse_code'], $res];
+        curl_close($curl);
+        return [$http_code, $res];
     }
 
     public function parseHeaders($headers)
