@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<routes xmlns="http://symfony.com/schema/routing"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <route id="theliaapi_test" path="/admin/test" methods="get">
+        <default key="_controller">TheliaClientApi\Controller\Api\TestController::defaultAction</default>
+    </route>
+
+    <route id="theliaapi.config" path="/admin/module/TheliaClientApi" methods="get">
+        <default key="_controller">TheliaClientApi\Controller\Admin\ConfigController::getConfigAction</default>
+    </route>
+    <route id="theliaapi.config.update" path="/admin/module/TheliaClientApi/configuration/update" methods="post">
+        <default key="_controller">TheliaClientApi\Controller\Admin\ConfigController::updateConfigAction</default>
+    </route>
+
+</routes>
